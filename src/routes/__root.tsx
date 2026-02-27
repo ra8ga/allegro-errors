@@ -8,8 +8,8 @@ import { useState, useEffect, createContext, useContext } from "react";
 import { ThemeProvider } from "better-themes";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
-// ─── MSW readiness gate ───────────────────────────────
-const mswReady: Promise<void> = import.meta.env.DEV
+// ─── MSW readiness gate (browser-only) ────────────────
+const mswReady: Promise<void> = import.meta.env.DEV && typeof window !== 'undefined'
   ? import('@/mocks/browser').then(({ startMsw }) => startMsw())
   : Promise.resolve()
 
