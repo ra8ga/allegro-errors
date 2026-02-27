@@ -11,8 +11,8 @@ import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { SearchIcon, XIcon, CircleXIcon } from "@/components/icons";
-import { parseApiResponse } from "@/packages/validation-tool";
-import type { ApiResult } from "@/packages/validation-tool";
+import { parseApiResponse } from "@validation-tool";
+import type { ApiResult } from "@validation-tool";
 import { scenarioNames } from "@/mocks/fixtures";
 
 // Fixture descriptions for dropdown

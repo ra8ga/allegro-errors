@@ -1,5 +1,5 @@
-import type { ApiResult } from '@/packages/validation-tool'
-import { getGlobalErrors, getFieldLevelErrors, hasRetryableError, getRetryAfter } from '@/packages/validation-tool'
+import type { ApiResult } from '@validation-tool'
+import { getGlobalErrors, getFieldLevelErrors, hasRetryableError, getRetryAfter } from '@validation-tool'
 import { cn } from '@/lib/utils'
 import { AlertTriangleIcon, CircleXIcon } from '@/components/icons'
 

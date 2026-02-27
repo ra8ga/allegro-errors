@@ -1,6 +1,6 @@
 import type { PermissionNode, PermissionStatus } from "@/types";
-import type { NormalizedError } from "@/packages/validation-tool";
-import { getFieldErrors } from "@/packages/validation-tool";
+import type { NormalizedError } from "@validation-tool";
+import { getFieldErrors } from "@validation-tool";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import {
