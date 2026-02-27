@@ -233,19 +233,21 @@ function PermissionsPage() {
                                     🎭 Mock (MSW)
                                 </button>
                                 <button
-                                    onClick={() => setDataSource('real')}
-                                    className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${dataSource === 'real'
-                                        ? 'bg-emerald-600 text-white shadow-sm'
-                                        : 'text-muted-foreground hover:text-foreground'
-                                        }`}
+                                    disabled
+                                    title="Allegro Sandbox aktualnie nie działa — planuję wrócić do tego w weekend"
+                                    className="px-3 py-1.5 rounded-md text-xs font-medium text-muted-foreground/50 cursor-not-allowed"
                                 >
                                     🔌 Real API
+                                    <span className="ml-1 text-[10px] opacity-60">(soon)</span>
                                 </button>
                             </div>
+                            <span className="text-[10px] text-muted-foreground/60 italic hidden sm:inline">
+                                Sandbox Allegro tymczasowo niedostępny — architektura gotowa (src/lib/allegro/)
+                            </span>
                         </div>
 
-                        {/* Connection status */}
-                        {dataSource === 'real' && (
+                        {/* Connection status — hidden while sandbox is down */}
+                        {false && dataSource === 'real' && (
                             <div className="flex items-center gap-2 ml-auto">
                                 <div className={`w-2 h-2 rounded-full ${allegroConnected ? 'bg-emerald-500' : 'bg-red-500'}`} />
                                 <span className="text-xs text-muted-foreground">
