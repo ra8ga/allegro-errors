@@ -11,7 +11,15 @@ import { nitro } from 'nitro/vite'
 const config = defineConfig({
   plugins: [
     devtools(),
-    nitro({ rollupConfig: { external: [/^@sentry\//] } }),
+    nitro({
+      preset: 'cloudflare-module',
+      output: {
+        dir: 'dist',
+        publicDir: 'dist/client',
+        serverDir: 'dist/server',
+      },
+      rollupConfig: { external: [/^@sentry\//] },
+    }),
     tsconfigPaths({ projects: ['./tsconfig.json'] }),
     tailwindcss(),
     tanstackStart(),

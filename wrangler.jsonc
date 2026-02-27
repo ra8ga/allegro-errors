@@ -1,0 +1,29 @@
+{
+    "name": "allegro-permissions",
+    "compatibility_date": "2024-12-01",
+    "compatibility_flags": [
+        "nodejs_compat"
+    ],
+    "main": "worker.ts",
+    "preview_urls": true,
+    "workers_dev": false,
+    "assets": {
+        "directory": "dist/client",
+        "binding": "ASSETS"
+    },
+    "env": {
+        "prod": {
+            "name": "allegro-permissions-production",
+            "workers_dev": false,
+            "routes": [
+                "allegro.furmaga.pl",
+                "allegro.furmaga.pl/*"
+            ]
+        },
+        "staging": {
+            "name": "allegro-permissions-staging",
+            "workers_dev": true,
+            "routes": []
+        }
+    }
+}
