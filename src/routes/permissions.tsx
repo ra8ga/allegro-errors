@@ -14,6 +14,12 @@ import { SearchIcon, XIcon, CircleXIcon } from "@/components/icons";
 import { parseApiResponse } from "@validation-tool";
 import type { ApiResult } from "@validation-tool";
 import { scenarioNames } from "@/mocks/fixtures";
+import {
+    getConnectionStatus,
+    getOAuthLoginUrl,
+    disconnectAllegro,
+    fetchAllegroPermissions,
+} from "@/lib/allegro/server";
 
 // Fixture descriptions for dropdown
 import { fixtures } from "@/mocks/fixtures";
@@ -22,15 +28,29 @@ export const Route = createFileRoute("/permissions")({
     component: PermissionsPage,
 });
 
+type DataSource = 'mock' | 'real'
+
 function PermissionsPage() {
-    // Scenario state
+    // Data source toggle
+    const [dataSource, setDataSource] = useState<DataSource>('mock');
+    const [allegroConnected, setAllegroConnected] = useState(false);
+    const [connectingAllegro, setConnectingAllegro] = useState(false);
+
+    // Scenario state (for mock mode)
     const [scenario, setScenario] = useState("partial-string-errors");
     const [loading, setLoading] = useState(false);
     const [result, setResult] = useState<ApiResult<PermissionNode[]> | null>(null);
     const [rawResponse, setRawResponse] = useState<unknown>(null);
 
-    // Fetch permissions from MSW
-    const fetchPermissions = useCallback(async (sc: string) => {
+    // Check Allegro connection status
+    useEffect(() => {
+        getConnectionStatus().then((status) => {
+            setAllegroConnected(status.connected);
+        }).catch(() => setAllegroConnected(false));
+    }, []);
+
+    // Fetch permissions from MSW (mock mode)
+    const fetchMockPermissions = useCallback(async (sc: string) => {
         setLoading(true);
         try {
             const res = await fetch(`/api/permissions?scenario=${sc}`);
@@ -64,9 +84,60 @@ function PermissionsPage() {
         }
     }, []);
 
+    // Fetch permissions from real Allegro API
+    const fetchRealPermissions = useCallback(async () => {
+        setLoading(true);
+        try {
+            const response = await fetchAllegroPermissions();
+            setRawResponse(response.body);
+            const parsed = parseApiResponse<PermissionNode[]>(response.status, response.body);
+            setResult(parsed);
+        } catch (err) {
+            setRawResponse(String(err));
+            setResult({
+                kind: "failure",
+                data: null,
+                errors: [{
+                    code: "INTERNAL",
+                    message: `Server error: ${err instanceof Error ? err.message : String(err)}`,
+                    severity: "error",
+                    retryable: true,
+                }],
+                httpStatus: 0,
+            });
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    // Fetch on mount and source/scenario change
     useEffect(() => {
-        fetchPermissions(scenario);
-    }, [scenario, fetchPermissions]);
+        if (dataSource === 'mock') {
+            fetchMockPermissions(scenario);
+        } else {
+            fetchRealPermissions();
+        }
+    }, [dataSource, scenario, fetchMockPermissions, fetchRealPermissions]);
+
+    // Allegro OAuth connect
+    const handleAllegroConnect = useCallback(async () => {
+        setConnectingAllegro(true);
+        try {
+            const { url } = await getOAuthLoginUrl();
+            window.location.href = url;
+        } catch {
+            setConnectingAllegro(false);
+        }
+    }, []);
+
+    // Allegro disconnect
+    const handleAllegroDisconnect = useCallback(async () => {
+        await disconnectAllegro();
+        setAllegroConnected(false);
+        if (dataSource === 'real') {
+            setDataSource('mock');
+        }
+    }, [dataSource]);
 
     // Data from API result
     const tree = result?.data ?? [];
@@ -144,42 +215,123 @@ function PermissionsPage() {
                     </p>
                 </div>
 
-                {/* Scenario Switcher */}
-                <div className="mb-5 p-4 rounded-xl border border-brand/20 bg-brand/5">
+                {/* Data Source Toggle */}
+                <div className="mb-5 p-4 rounded-xl border border-border/40 bg-card">
                     <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-                        <div className="flex items-center gap-2 shrink-0">
-                            <span className="text-xs font-semibold uppercase tracking-wider text-brand">
-                                🎭 Scenariusz
+                        <div className="flex items-center gap-3">
+                            <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                                Źródło danych
                             </span>
+                            <div className="flex items-center gap-2 bg-muted/50 rounded-lg p-1">
+                                <button
+                                    onClick={() => setDataSource('mock')}
+                                    className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${dataSource === 'mock'
+                                        ? 'bg-brand text-white shadow-sm'
+                                        : 'text-muted-foreground hover:text-foreground'
+                                        }`}
+                                >
+                                    🎭 Mock (MSW)
+                                </button>
+                                <button
+                                    onClick={() => setDataSource('real')}
+                                    className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${dataSource === 'real'
+                                        ? 'bg-emerald-600 text-white shadow-sm'
+                                        : 'text-muted-foreground hover:text-foreground'
+                                        }`}
+                                >
+                                    🔌 Real API
+                                </button>
+                            </div>
                         </div>
-                        <select
-                            value={scenario}
-                            onChange={(e) => setScenario(e.target.value)}
-                            className="flex-1 h-9 rounded-lg border border-border/60 bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand/30 cursor-pointer"
-                        >
-                            {scenarioNames.map((name) => (
-                                <option key={name} value={name}>
-                                    {name} — {fixtures[name].description}
-                                </option>
-                            ))}
-                        </select>
+
+                        {/* Connection status */}
+                        {dataSource === 'real' && (
+                            <div className="flex items-center gap-2 ml-auto">
+                                <div className={`w-2 h-2 rounded-full ${allegroConnected ? 'bg-emerald-500' : 'bg-red-500'}`} />
+                                <span className="text-xs text-muted-foreground">
+                                    {allegroConnected ? 'Połączono z Allegro Sandbox' : 'Brak połączenia'}
+                                </span>
+                                {allegroConnected ? (
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={handleAllegroDisconnect}
+                                        className="text-xs h-7 rounded-md border-red-200 text-red-600 hover:bg-red-50"
+                                    >
+                                        Rozłącz
+                                    </Button>
+                                ) : (
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={handleAllegroConnect}
+                                        disabled={connectingAllegro}
+                                        className="text-xs h-7 rounded-md border-emerald-200 text-emerald-600 hover:bg-emerald-50"
+                                    >
+                                        {connectingAllegro ? '⏳ Łączenie...' : '🔗 Połącz z Allegro'}
+                                    </Button>
+                                )}
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                {/* Scenario Switcher (mock mode only) */}
+                {dataSource === 'mock' && (
+                    <div className="mb-5 p-4 rounded-xl border border-brand/20 bg-brand/5">
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                            <div className="flex items-center gap-2 shrink-0">
+                                <span className="text-xs font-semibold uppercase tracking-wider text-brand">
+                                    🎭 Scenariusz
+                                </span>
+                            </div>
+                            <select
+                                value={scenario}
+                                onChange={(e) => setScenario(e.target.value)}
+                                className="flex-1 h-9 rounded-lg border border-border/60 bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand/30 cursor-pointer"
+                            >
+                                {scenarioNames.map((name) => (
+                                    <option key={name} value={name}>
+                                        {name} — {fixtures[name].description}
+                                    </option>
+                                ))}
+                            </select>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => fetchMockPermissions(scenario)}
+                                disabled={loading}
+                                className="text-xs h-8 gap-1.5 rounded-lg border-brand/20 text-brand hover:bg-brand/10"
+                            >
+                                {loading ? "⏳" : "🔄"} Odśwież
+                            </Button>
+                        </div>
+                    </div>
+                )}
+
+                {/* Real API refresh button */}
+                {dataSource === 'real' && (
+                    <div className="mb-5 flex items-center gap-2">
                         <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => fetchPermissions(scenario)}
+                            onClick={fetchRealPermissions}
                             disabled={loading}
-                            className="text-xs h-8 gap-1.5 rounded-lg border-brand/20 text-brand hover:bg-brand/10"
+                            className="text-xs h-8 gap-1.5 rounded-lg"
                         >
-                            {loading ? "⏳" : "🔄"} Odśwież
+                            {loading ? "⏳" : "🔄"} Odśwież z Allegro API
                         </Button>
+                        <span className="text-xs text-muted-foreground">
+                            Środowisko: {process.env.ALLEGRO_ENV ?? 'sandbox'}
+                        </span>
                     </div>
-                </div>
+                )}
 
                 {/* Error Banner */}
                 {result && (
                     <ErrorBanner
                         result={result}
-                        onRetry={() => fetchPermissions(scenario)}
+                        onRetry={() => dataSource === 'mock' ? fetchMockPermissions(scenario) : fetchRealPermissions()}
                     />
                 )}
 
@@ -301,7 +453,7 @@ function PermissionsPage() {
                             <Button
                                 variant="outline"
                                 size="sm"
-                                onClick={() => fetchPermissions(scenario)}
+                                onClick={() => dataSource === 'mock' ? fetchMockPermissions(scenario) : fetchRealPermissions()}
                                 className="text-xs"
                             >
                                 🔄 Spróbuj ponownie
