@@ -288,7 +288,7 @@ function PermissionsPage() {
                             <select
                                 value={scenario}
                                 onChange={(e) => setScenario(e.target.value)}
-                                className="flex-1 h-9 rounded-lg border border-border/60 bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand/30 cursor-pointer"
+                                className="flex-1 h-9 rounded-lg border border-border/60 bg-background px-3 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-brand/30 cursor-pointer"
                             >
                                 {scenarioNames.map((name) => (
                                     <option key={name} value={name}>
