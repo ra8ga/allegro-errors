@@ -1,4 +1,6 @@
 import type { PermissionNode, PermissionStatus } from "@/types";
+import type { NormalizedError } from "@/packages/validation-tool";
+import { getFieldErrors } from "@/packages/validation-tool";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -60,13 +62,16 @@ interface PermissionDetailsProps {
     node: PermissionNode;
     path: string[];
     onClose?: () => void;
+    errors?: NormalizedError[];
 }
 
 export function PermissionDetails({
     node,
     path,
     onClose,
+    errors = [],
 }: PermissionDetailsProps) {
+    const nodeErrors = getFieldErrors(errors, node.id);
     const config = statusConfig[node.status];
     const StatusIcon = config.icon;
 
@@ -177,6 +182,54 @@ export function PermissionDetails({
                                     {node.children.length === 1 ? "element" : "elementów"}
                                 </span>
                             </p>
+                        </div>
+                    </>
+                )}
+
+                {/* API Errors for this node */}
+                {nodeErrors.length > 0 && (
+                    <>
+                        <Separator className="opacity-50" />
+                        <div>
+                            <Label>Błędy API</Label>
+                            <div className="mt-2 space-y-2">
+                                {nodeErrors.map((err, i) => (
+                                    <div
+                                        key={i}
+                                        className={cn(
+                                            "rounded-lg border px-3 py-2.5 text-sm",
+                                            err.severity === 'error' && 'bg-red-50/50 border-red-200/60 dark:bg-red-950/20 dark:border-red-800/40',
+                                            err.severity === 'warning' && 'bg-amber-50/50 border-amber-200/60 dark:bg-amber-950/20 dark:border-amber-800/40',
+                                            err.severity === 'info' && 'bg-blue-50/50 border-blue-200/60 dark:bg-blue-950/20 dark:border-blue-800/40',
+                                        )}
+                                    >
+                                        <div className="flex items-center gap-2 mb-1">
+                                            <Badge
+                                                variant="outline"
+                                                className={cn(
+                                                    'text-[10px] px-1.5 py-0.5 font-mono',
+                                                    err.severity === 'error' && 'text-red-600 border-red-300 dark:text-red-400 dark:border-red-700',
+                                                    err.severity === 'warning' && 'text-amber-600 border-amber-300 dark:text-amber-400 dark:border-amber-700',
+                                                    err.severity === 'info' && 'text-blue-600 border-blue-300 dark:text-blue-400 dark:border-blue-700',
+                                                )}
+                                            >
+                                                {err.code}
+                                            </Badge>
+                                            <span className={cn(
+                                                'text-[10px] uppercase font-semibold tracking-wider',
+                                                err.severity === 'error' && 'text-red-500 dark:text-red-400',
+                                                err.severity === 'warning' && 'text-amber-500 dark:text-amber-400',
+                                                err.severity === 'info' && 'text-blue-500 dark:text-blue-400',
+                                            )}>
+                                                {err.severity}
+                                            </span>
+                                        </div>
+                                        <p className="text-muted-foreground text-xs leading-relaxed">
+                                            {err.message}
+                                        </p>
+                                    </div>
+                                ))}
+                            </div>
                         </div>
                     </>
                 )}
