@@ -1,0 +1,140 @@
+[
+    {
+        "id": "orders",
+        "label": "Zamówienia",
+        "description": "Zarządzanie zamówieniami i ich statusami",
+        "status": "partial",
+        "children": [
+            {
+                "id": "orders.view",
+                "label": "Podgląd zamówień",
+                "description": "Przegląd listy zamówień i ich szczegółów",
+                "status": "granted"
+            },
+            {
+                "id": "orders.edit",
+                "label": "Edycja zamówień",
+                "description": "Modyfikacja danych zamówienia",
+                "status": "denied"
+            },
+            {
+                "id": "orders.returns",
+                "label": "Zwroty",
+                "description": "Obsługa procesów zwrotów produktów",
+                "status": "partial",
+                "children": [
+                    {
+                        "id": "orders.returns.approve",
+                        "label": "Zatwierdzanie zwrotów",
+                        "description": "Akceptacja lub odrzucanie wniosków o zwrot",
+                        "status": "denied"
+                    },
+                    {
+                        "id": "orders.returns.view",
+                        "label": "Podgląd zwrotów",
+                        "description": "Przeglądanie historii zwrotów",
+                        "status": "granted"
+                    }
+                ]
+            },
+            {
+                "id": "orders.shipping",
+                "label": "Wysyłka",
+                "description": "Zarządzanie etykietami i statusem przesyłek",
+                "status": "granted"
+            }
+        ]
+    },
+    {
+        "id": "payments",
+        "label": "Płatności",
+        "description": "Transakcje finansowe i rozliczenia",
+        "status": "partial",
+        "children": [
+            {
+                "id": "payments.view",
+                "label": "Podgląd transakcji",
+                "description": "Przegląd historii płatności",
+                "status": "granted"
+            },
+            {
+                "id": "payments.process",
+                "label": "Przetwarzanie płatności",
+                "description": "Inicjowanie i potwierdzanie transakcji",
+                "status": "locked"
+            },
+            {
+                "id": "payments.invoices",
+                "label": "Faktury",
+                "description": "Generowanie i zarządzanie fakturami",
+                "status": "partial",
+                "children": [
+                    {
+                        "id": "payments.invoices.create",
+                        "label": "Tworzenie faktur",
+                        "description": "Generowanie nowych faktur sprzedaży",
+                        "status": "denied"
+                    },
+                    {
+                        "id": "payments.invoices.download",
+                        "label": "Pobieranie faktur",
+                        "description": "Eksport faktur w formacie PDF",
+                        "status": "granted"
+                    }
+                ]
+            },
+            {
+                "id": "payments.settlements",
+                "label": "Rozliczenia",
+                "description": "Przegląd wpłat i wypłat ze konta sprzedawcy",
+                "status": "granted"
+            }
+        ]
+    },
+    {
+        "id": "user",
+        "label": "Dane użytkownika",
+        "description": "Dane osobowe, ustawienia konta i preferencje",
+        "status": "partial",
+        "children": [
+            {
+                "id": "user.profile",
+                "label": "Profil",
+                "description": "Dane profilowe i zdjęcie",
+                "status": "granted"
+            },
+            {
+                "id": "user.addresses",
+                "label": "Adresy",
+                "description": "Zarządzanie adresami wysyłki i rozliczeń",
+                "status": "granted"
+            },
+            {
+                "id": "user.security",
+                "label": "Bezpieczeństwo",
+                "description": "Hasła, 2FA i klucze API",
+                "status": "partial",
+                "children": [
+                    {
+                        "id": "user.security.2fa",
+                        "label": "Uwierzytelnianie dwuskładnikowe",
+                        "description": "Konfiguracja i zarządzanie 2FA",
+                        "status": "granted"
+                    },
+                    {
+                        "id": "user.security.api-keys",
+                        "label": "Klucze API",
+                        "description": "Generowanie i unieważnianie kluczy API",
+                        "status": "denied"
+                    }
+                ]
+            },
+            {
+                "id": "user.gdpr",
+                "label": "RODO / Prywatność",
+                "description": "Eksport i usuwanie danych osobowych",
+                "status": "locked"
+            }
+        ]
+    }
+]
