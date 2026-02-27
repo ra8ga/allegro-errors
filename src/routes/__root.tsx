@@ -116,13 +116,6 @@ function Header() {
 
         {/* Right side */}
         <div className="flex items-center gap-1">
-          <Link
-            to="/permissions"
-            className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors rounded-lg px-3 py-2 hover:bg-accent/50"
-            activeProps={{ className: "text-sm font-medium text-brand bg-brand/6 rounded-lg px-3 py-2" }}
-          >
-            Uprawnienia
-          </Link>
           <ThemeToggle />
         </div>
       </div>
