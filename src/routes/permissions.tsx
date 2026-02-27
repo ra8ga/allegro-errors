@@ -53,16 +53,14 @@ function PermissionsPage() {
     const fetchMockPermissions = useCallback(async (sc: string) => {
         setLoading(true);
         try {
-            const res = await fetch(`/api/permissions?scenario=${sc}`);
-            let body: unknown;
-            const contentType = res.headers.get("content-type") || "";
-            if (contentType.includes("application/json")) {
-                body = await res.json();
-            } else {
-                body = await res.text();
+            // Use fixtures directly instead of fetch — MSW only works in dev browser
+            const fixture = fixtures[sc];
+            if (!fixture) {
+                throw new Error(`Unknown scenario: ${sc}`);
             }
+            const body = fixture.body;
             setRawResponse(body);
-            const parsed = parseApiResponse<PermissionNode[]>(res.status, body);
+            const parsed = parseApiResponse<PermissionNode[]>(fixture.status, body);
             setResult(parsed);
         } catch (err) {
             setRawResponse(String(err));
@@ -72,7 +70,7 @@ function PermissionsPage() {
                 errors: [
                     {
                         code: "INTERNAL",
-                        message: `Network error: ${err instanceof Error ? err.message : String(err)}`,
+                        message: `Error: ${err instanceof Error ? err.message : String(err)}`,
                         severity: "error",
                         retryable: true,
                     },
